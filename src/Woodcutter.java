@@ -10,4 +10,14 @@ public final class Woodcutter extends Script {
         return 0;
     }
 
+    @Override
+    public final void onStart() {
+        log("On Start Test");
+    }
+
+    @Override
+    public final void OnExit() {
+        log("On Exit Test");
+    }
+
 }
