@@ -102,6 +102,7 @@ public final class Woodcutter extends Script {
                 getBank().depositAllExcept(axes -> axes.getName().contains(" axe"));
             }
         }
+        previousLogs = 0;
     }
 
     @Override
