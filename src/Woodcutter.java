@@ -10,5 +10,4 @@ public final class Woodcutter extends Script {
         return 0;
     }
 
-    
 }
