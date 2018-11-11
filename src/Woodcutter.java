@@ -109,7 +109,12 @@ public final class Woodcutter extends Script {
     public void onPaint(final Graphics2D g) {
         //Paint code
         runTime = System.currentTimeMillis() - startTime;
+        Font font = new Font("Arial", Font.BOLD, 12);
+        g.setColor(Color.WHITE);
+        g.setFont(font);
+
         g.drawString("Run Time: " + formatTime(runTime),10,330);
+        g.drawString("Logs Collected: " + logsCollected,10,315);
     }
 
     private boolean chop(String treeType) {
