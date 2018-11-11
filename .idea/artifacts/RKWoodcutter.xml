@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="RKWoodcutter">
+    <output-path>$PROJECT_DIR$/out/artifacts/RKWoodcutter</output-path>
+    <root id="archive" name="RKWoodcutter.jar">
+      <element id="module-output" name="RKWoodcutter" />
+    </root>
+  </artifact>
+</component>
