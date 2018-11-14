@@ -10,7 +10,7 @@ import java.util.jar.Manifest;
 import java.io. * ;
 import java.awt. * ;
 
-@ScriptManifest(author = "OSRunekeep", name = "RK Woodcutter", info = "Simple Woodcutter", version = 1.2, logo = "")
+@ScriptManifest(author = "OSRunekeep", name = "RK Woodcutter", info = "Simple Woodcutter", version = 2.0, logo = "")
 
 public final class WoodcutterA extends Script {
     //region Variables
@@ -219,7 +219,7 @@ public final class WoodcutterA extends Script {
     
     //region Classes
     //---------------------------------------------------------------------------------------
-    public final class TreeArea {
+    public class TreeArea {
         public final Area TREE_A = new Area(3202, 3236, 3186, 3255).setPlane(0);
         public final Area TREE_B = new Area(0,0,0,0).setPlane(0);
         public final Area OAK_A = new Area(0,0,0,0).setPlane(0);
@@ -235,17 +235,48 @@ public final class WoodcutterA extends Script {
     //---------------------------------------------------------------------------------------
     @Override
     public final void onStart(){
+        log("RK Woodcutter V2.0 Started!");
 
+        startLevel = skills.getStatic(Skill.WOODCUTTING);
+        highestTree = getHighestTree(startLevel);
+        highestLog = getHighestLog(highestTree);
+        log("Best tree: " + highestTree);
+        log("Best log: " + highestLog);
+
+        startTime = System.currentTimeMillis();
+
+        initialLogs = getInventory().getAmount(highestLog);
+        previousLogs = initialLogs;
+        log("Found " + initialLogs + " in inventory.");
+        log("All initial checks done.");
     }
 
     @Override
     public final int onLoop() throws InterruptedException {
+        // Start by counting logs
+        currentLogs = getInventory().getAmount(highestLog);
+        if(currentLogs > previousLogs){
+            logsCollected++;
+            previousLogs = currentLogs;
+            log("Total logs collected: " + logsCollected);
+        }
+
+        // Check if inventory full
+        if(shouldBank()){
+            bank();
+            log("Inventory full; banking.");
+        } else {
+            chopTree(highestTree);
+        }
         return (random(100,500));
     }
 
     @Override
     public final void onExit() {
-
+        log("Thanks for using RK Woodcutter!");
+        log("Logs cut: " + logsCollected);
+        log("Levels gained: " + (skills.getStatic(Skill.WOODCUTTING) - startLevel));
+        log("Run time: " + formatTime(runTime));
     }
 
     @Override
@@ -255,7 +286,20 @@ public final class WoodcutterA extends Script {
 
     @Override
     public void onPaint(final Graphics2D g) {
+        runTime = System.currentTimeMillis() - startTime;
+        Font font = new Font("Arial", Font.BOLD, 12);
+        g.setColor(Color.WHITE);
+        g.setFont(font);
 
+        g.drawString("Runekeep Woodcutter",10,255);
+        g.drawString("Run Time: " + formatTime(runTime),10,270);
+        g.drawString("Logs Collected: " + logsCollected,10,285);
+        g.drawString("Current Level: " + skills.getStatic(Skill.WOODCUTTING),10,300);
+        g.drawString("Levels Gained: " + (skills.getStatic(Skill.WOODCUTTING) - startLevel),10,315);
+        g.drawString("Next Level In: TBA",10,330);
+
+        String treeType = ("Current Tree: " + highestTree);
+        g.drawString(treeType,510 - treeType.length()*7, 20);
     }
     //---------------------------------------------------------------------------------------
     //end region
