@@ -1,3 +1,4 @@
+import org.osbot.rs07.api.Bank;
 import org.osbot.rs07.api.map.Area;
 import org.osbot.rs07.api.map.constants.Banks;
 import org.osbot.rs07.api.model.RS2Object;
@@ -6,6 +7,8 @@ import org.osbot.rs07.api.ui.Skill;
 import org.osbot.rs07.script.Script;
 import org.osbot.rs07.script.ScriptManifest;
 import org.osbot.rs07.utility.ConditionalSleep;
+import sun.util.logging.PlatformLogger;
+
 import java.util.jar.Manifest;
 import java.io. * ;
 import java.awt. * ;
@@ -24,10 +27,13 @@ public final class Woodcutter extends Script {
     private long runTime;
 
     private int startLevel;
+    private int previousLevel;
+    private int currentLevel;
 
     private String highestTree;
     private String highestLog;
     private int locationChoice = 0;
+
     //---------------------------------------------------------------------------------------
     //end region
 
@@ -48,44 +54,42 @@ public final class Woodcutter extends Script {
     }
 
     private String getHighestTree(int curLevel) {
-        int tree = 0;
-        int oak = 15;
-        int willow = 99;
-        int maple = 99;
-        int yew = 99;
-
+        Trees trees = new Trees();
         String treeType;
 
-        if(curLevel >= yew) {
-            treeType = "Yew";
-        } else if (curLevel >= maple) {
-            treeType = "Maple";
-        } else if (curLevel >= willow) {
-            treeType = "Willow";
-        } else if (curLevel >= oak) {
-            treeType = "Oak";
+        if(curLevel >= trees.yew.treeLevel) {
+            treeType = trees.yew.treeName;
+        } else if (curLevel >= trees.maple.treeLevel) {
+            treeType = trees.maple.treeName;
+        } else if (curLevel >= trees.willow.treeLevel) {
+            treeType = trees.willow.treeName;
+        } else if (curLevel >= trees.oak.treeLevel) {
+            treeType = trees.oak.treeName;
         } else {
-            treeType = "Tree";
+            treeType = trees.tree.treeName;
         }
-
         return treeType;
     }
 
     private String getHighestLog(String tree) {
+        Trees trees = new Trees();
         String logType = "Logs";
 
         switch (tree) {
             case "Tree":
-                logType = "Logs";
+                logType = trees.tree.logName;
                 break;
             case "Oak":
-                logType = "Oak logs";
+                logType = trees.oak.logName;
                 break;
             case "Willow":
-                logType = "Willow logs";
+                logType = trees.willow.logName;
+                break;
+            case "Maple":
+                logType = trees.maple.logName;
                 break;
             case "Yew":
-                logType = "Yew logs";
+                logType = trees.yew.logName;
                 break;
         }
         return logType;
@@ -203,6 +207,7 @@ public final class Woodcutter extends Script {
     }
 
     private void bank() throws InterruptedException {
+        upgradeTree();
         if(!Banks.LUMBRIDGE_UPPER.contains(myPlayer())){
             getWalking().webWalk(Banks.LUMBRIDGE_UPPER);
         } else {
@@ -214,19 +219,52 @@ public final class Woodcutter extends Script {
         }
         previousLogs = 0;
     }
+
+    private void upgradeTree(){
+        int currentLevel = skills.getStatic(Skill.WOODCUTTING);
+
+        if(currentLevel > previousLevel){
+            previousLevel = currentLevel;
+            log("Levelled up since last run!");
+
+            highestTree = getHighestTree(currentLevel);
+            highestLog = getHighestLog(highestTree);
+            log("Now cutting " + highestLog);
+        }
+    }
     //---------------------------------------------------------------------------------------
     //end region
 
     //region Classes
     //---------------------------------------------------------------------------------------
-    public class TreeArea {
-        public final Area TREE_A = new Area(3202, 3236, 3186, 3255).setPlane(0);
-        public final Area TREE_B = new Area(3202, 3236, 3186, 3255).setPlane(0); // Duplicate
-        public final Area OAK_A = new Area(3186,3246, 3193, 3252).setPlane(0);
-        public final Area OAK_B = new Area(3202,3238, 3206, 3249).setPlane(0);
-        public final Area WILLOW = new Area(0,0,0,0).setPlane(0);
-        public final Area MAPLE = new Area(0,0,0,0).setPlane(0);
-        public final Area YEW = new Area(0,0,0,0).setPlane(0);
+    private class TreeArea {
+        private final Area TREE_A = new Area(3202, 3236, 3186, 3255).setPlane(0);
+        private final Area TREE_B = new Area(3202, 3236, 3186, 3255).setPlane(0); // Duplicate
+        private final Area OAK_A = new Area(3186,3246, 3193, 3252).setPlane(0);
+        private final Area OAK_B = new Area(3202,3238, 3206, 3249).setPlane(0);
+        private final Area WILLOW = new Area(0,0,0,0).setPlane(0);
+        private final Area MAPLE = new Area(0,0,0,0).setPlane(0);
+        private final Area YEW = new Area(0,0,0,0).setPlane(0);
+    }
+
+    private class TreeInfo {
+        private String treeName = "";
+        private String logName = "";
+        private int treeLevel = 0;
+
+        TreeInfo(String n, String log, int lvl){
+            treeName = n;
+            logName = log;
+            treeLevel = lvl;
+        }
+    }
+
+    private class Trees {
+        TreeInfo tree = new TreeInfo("Tree", "Logs", 0);
+        TreeInfo oak = new TreeInfo("Oak", "Oak logs", 15);
+        TreeInfo willow = new TreeInfo("Willow", "Willow logs", 30);
+        TreeInfo maple = new TreeInfo("Maple", "Maple logs", 45);
+        TreeInfo yew = new TreeInfo("Yew", "Yew logs", 60);
     }
     //---------------------------------------------------------------------------------------
     //end region
@@ -238,6 +276,10 @@ public final class Woodcutter extends Script {
         log("RK Woodcutter V2.0 Started!");
 
         startLevel = skills.getStatic(Skill.WOODCUTTING);
+        currentLevel = startLevel;
+        previousLevel = startLevel;
+        log("Starting level: " + startLevel);
+
         highestTree = getHighestTree(startLevel);
         highestLog = getHighestLog(highestTree);
         log("Best tree: " + highestTree);
