@@ -221,9 +221,9 @@ public final class Woodcutter extends Script {
     //---------------------------------------------------------------------------------------
     public class TreeArea {
         public final Area TREE_A = new Area(3202, 3236, 3186, 3255).setPlane(0);
-        public final Area TREE_B = new Area(0,0,0,0).setPlane(0);
-        public final Area OAK_A = new Area(0,0,0,0).setPlane(0);
-        public final Area OAK_B = new Area(0,0,0,0).setPlane(0);
+        public final Area TREE_B = new Area(3202, 3236, 3186, 3255).setPlane(0); // Duplicate
+        public final Area OAK_A = new Area(3186,3246, 3193, 3252).setPlane(0);
+        public final Area OAK_B = new Area(3202,3238, 3206, 3249).setPlane(0);
         public final Area WILLOW = new Area(0,0,0,0).setPlane(0);
         public final Area MAPLE = new Area(0,0,0,0).setPlane(0);
         public final Area YEW = new Area(0,0,0,0).setPlane(0);
