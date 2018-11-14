@@ -6,117 +6,155 @@ import org.osbot.rs07.api.ui.Skill;
 import org.osbot.rs07.script.Script;
 import org.osbot.rs07.script.ScriptManifest;
 import org.osbot.rs07.utility.ConditionalSleep;
-
-import java.io.*;
-
-import java.awt.*;
 import java.util.jar.Manifest;
-//import org.osbot.rs07.api.model.Item;
+import java.io. * ;
+import java.awt. * ;
 
-@ScriptManifest(author = "OSRunekeep", name = "RK Woodcutter", info = "Simple Woodcutter", version = 1.1, logo = "")
+@ScriptManifest(author = "OSRunekeep", name = "RK Woodcutter", info = "Simple Woodcutter", version = 2.0, logo = "")
 
 public final class Woodcutter extends Script {
+    //region Variables
+    //---------------------------------------------------------------------------------------
+    private long initialLogs;
+    private long currentLogs;
+    private long previousLogs;
+    private long logsCollected;
 
-    //////// VARIABLES ////////
-
-    // Variables to store how many logs cut
-    private long initialLogs;       // Logs you started with
-    private long currentLogs;    // Current logs in inventory
-    private long previousLogs;   // Previous log count (for comparison)
-    private long logsCollected;     // Counter for total logs cut
-
-    // Logging time
     private long startTime;
     private long runTime;
 
-    // Logging level
     private int startLevel;
 
-    // Auto Highest Tree
     private String highestTree;
     private String highestLog;
-    int location = 0; // Reset location to 0
+    private int locationChoice = 0;
+    //---------------------------------------------------------------------------------------
+    //end region
 
-    //////// FUNCTIONS ////////
-
-    // Converts a time in ms to HH MM SS etc.
-    public final String formatTime(final long ms){
-        long s = ms / 1000, m = s / 60, h = m / 60, d = h / 24;
-        s %= 60; m %= 60; h %= 24;
+    //region Functions
+    //---------------------------------------------------------------------------------------
+    private final String formatTime(final long ms) {
+        long s = ms / 1000,
+                m = s / 60,
+                h = m / 60,
+                d = h / 24;
+        s %= 60;
+        m %= 60;
+        h %= 24;
 
         return d > 0 ? String.format("%02d:%02d:%02d:%02d", d, h, m, s) :
                 h > 0 ? String.format("%02d:%02d:%02d", h, m, s) :
                         String.format("%02d:%02d", m, s);
     }
 
-    private String getHighestTree(int curLevel){
-        String treeType;
-        log("NOTE: modified values to ignore willow for now");
+    private String getHighestTree(int curLevel) {
+        int tree = 0;
+        int oak = 15;
+        int willow = 99;
+        int maple = 99;
+        int yew = 99;
 
-        if(curLevel >= 0 && curLevel < 15){
-            treeType = "Tree";
-        } else if(curLevel >= 15 && curLevel < 50){
-            treeType = "Oak";
-        } else if(curLevel >= 50 && curLevel < 55){
-            treeType = "Willow";
-        } else if(curLevel >= 55 && curLevel < 65) {
-            treeType = "Maple";
-        } else {
+        String treeType;
+
+        if(curLevel >= yew) {
             treeType = "Yew";
+        } else if (curLevel >= maple) {
+            treeType = "Maple";
+        } else if (curLevel >= willow) {
+            treeType = "Willow";
+        } else if (curLevel >= oak) {
+            treeType = "Oak";
+        } else {
+            treeType = "Tree";
         }
 
         return treeType;
     }
 
-    private String getHighestLog(String tree){
-        String logOutput = "";
+    private String getHighestLog(String tree) {
+        String logType = "Logs";
 
-        switch(tree){
-            case "Tree":    logOutput = "Logs";
-                            break;
-            case "Oak":     logOutput = "Oak logs";
-                            break;
-            case "Willow":  logOutput = "Willow logs";
-                            break;
-            case "Yew":     logOutput = "Yew logs";
-                            break;
+        switch (tree) {
+            case "Tree":
+                logType = "Logs";
+                break;
+            case "Oak":
+                logType = "Oak logs";
+                break;
+            case "Willow":
+                logType = "Willow logs";
+                break;
+            case "Yew":
+                logType = "Yew logs";
+                break;
         }
-        return logOutput;
+        return logType;
     }
 
     private Area getTreeArea(String treeType) {
-        Area treeLocation = new Area(0,0, 0, 0).setPlane(0);
+        TreeArea Trees = new TreeArea();
+        Area treeLocation = new Area(0,0,0,0).setPlane(0);
+        int locations;
 
         switch(treeType){
-            case "Tree":        treeLocation = new Area(3202,3236, 3186, 3255).setPlane(0);
-                                break;
+            case "Tree":
+                locations = 2;
+                if(locationChoice == 0){
+                    locationChoice = random(1, locations);
+                }
+                switch(locationChoice){
+                    case 1:
+                        treeLocation = Trees.TREE_A;
+                    case 2:
+                        treeLocation = Trees.TREE_B;
+                }
+                break;
 
-            case "Oak":         int locations = 2; // Number of locations
-                                if(location == 0){
-                                    location = random(1,locations);
-                                }
+            case "Oak":
+                locations = 2;
+                if(locationChoice == 0){
+                    locationChoice = random(1, locations);
+                }
+                switch(locationChoice){
+                    case 1:
+                        treeLocation = Trees.OAK_A;
+                    case 2:
+                        treeLocation = Trees.OAK_B;
+                }
+                break;
 
-                                switch (location){
-                                    case 1: treeLocation = new Area(3186,3246, 3193, 3252).setPlane(0);
-                                            break;
-                                    case 2: treeLocation = new Area(3202,3238, 3206, 3249).setPlane(0);
-                                }
-                                break;
+            case "Willow":
+                locations = 1;
+                if(locationChoice == 0){
+                    locationChoice = random(1, locations);
+                }
+                switch(locationChoice){
+                    case 1:
+                        treeLocation = Trees.WILLOW;
+                }
+                break;
 
-            case "Willow": treeLocation = new Area(1,1,1,1); //Update with WILLOW at some point
-                                break;
+            case "Maple":
+                locations = 1;
+                if(locationChoice == 0){
+                    locationChoice = random(1, locations);
+                }
+                switch(locationChoice){
+                    case 1:
+                        treeLocation = Trees.MAPLE;
+                }
+                break;
 
-            case "Maple":  treeLocation = new Area(1,1,1,1); //Update with MAPLE at some point
-                                break;
-
-            case "Yew":    treeLocation = new Area(1,1,1,1); //Update with YEW at some point
-                                break;
-        }
-
-        // Small check to see whether treeType was found
-        if(treeLocation == new Area(0,0, 0, 0).setPlane(0)){
-            log("Tree type not found; defaulting to normal tree.");
-            treeLocation = new Area(2302,3236, 3186, 3255).setPlane(0);
+            case "Yew":
+                locations = 1;
+                if(locationChoice == 0){
+                    locationChoice = random(1, locations);
+                }
+                switch(locationChoice){
+                    case 1:
+                        treeLocation = Trees.YEW;
+                }
+                break;
         }
 
         return treeLocation;
@@ -127,28 +165,24 @@ public final class Woodcutter extends Script {
     }
 
     private void chopTree(String treeType){
-
-        // Finds closest tree
         RS2Object treeObj = getObjects().closest(treeType);
 
-        // Walks to tree area
         if(!getTreeArea(treeType).contains(myPlayer())){
             getWalking().webWalk(getTreeArea(treeType));
         } else {
-            if(!myPlayer().isAnimating() && treeObj != null){
-                // Sleeps for a random number of seconds
-                try{
-                    sleep(random(100,3000));
-                } catch(InterruptedException e) {
-                    log("Sleep Interrupted (for some reason???!)");
+            if(!myPlayer().isAnimating() && treeObj != null) {
+                try {
+                    sleep(random(100, 3000));
+                } catch (InterruptedException e) {
+                    log("Line 117: Sleep Interrupted.");
                 }
 
-                // Chops tree
+                // Chop Tree
                 chop(treeType);
 
                 log("Chopping " + treeObj.getName());
 
-                new ConditionalSleep(7000){
+                new ConditionalSleep(7000) {
                     @Override
                     public final boolean condition() throws InterruptedException {
                         return myPlayer().isAnimating();
@@ -158,7 +192,7 @@ public final class Woodcutter extends Script {
                 try{
                     sleep(random(100,3000));
                 } catch(InterruptedException e) {
-                    log("Sleep Interrupted (for some reason???!)");
+                    log("Line 195: Sleep Interrupted.");
                 }
             }
         }
@@ -180,46 +214,69 @@ public final class Woodcutter extends Script {
         }
         previousLogs = 0;
     }
+    //---------------------------------------------------------------------------------------
+    //end region
 
-    //////// INITIALISATION ////////
+    //region Classes
+    //---------------------------------------------------------------------------------------
+    public class TreeArea {
+        public final Area TREE_A = new Area(3202, 3236, 3186, 3255).setPlane(0);
+        public final Area TREE_B = new Area(0,0,0,0).setPlane(0);
+        public final Area OAK_A = new Area(0,0,0,0).setPlane(0);
+        public final Area OAK_B = new Area(0,0,0,0).setPlane(0);
+        public final Area WILLOW = new Area(0,0,0,0).setPlane(0);
+        public final Area MAPLE = new Area(0,0,0,0).setPlane(0);
+        public final Area YEW = new Area(0,0,0,0).setPlane(0);
+    }
+    //---------------------------------------------------------------------------------------
+    //end region
 
+    //region Main
+    //---------------------------------------------------------------------------------------
     @Override
-    public final void onStart() {
-        log("RK Woodcutter started! Version test v1.1.");
+    public final void onStart(){
+        log("RK Woodcutter V2.0 Started!");
 
         startLevel = skills.getStatic(Skill.WOODCUTTING);
         highestTree = getHighestTree(startLevel);
-        log(highestTree);
-
         highestLog = getHighestLog(highestTree);
-        log(highestLog);
+        log("Best tree: " + highestTree);
+        log("Best log: " + highestLog);
 
         startTime = System.currentTimeMillis();
+
         initialLogs = getInventory().getAmount(highestLog);
         previousLogs = initialLogs;
+        log("Found " + initialLogs + " in inventory.");
+        log("All initial checks done.");
     }
 
-    // Loop
     @Override
     public final int onLoop() throws InterruptedException {
-        // Main Loop
+        // Start by counting logs
         currentLogs = getInventory().getAmount(highestLog);
         if(currentLogs > previousLogs){
             logsCollected++;
-            log("You have collected " + logsCollected + " "  + highestTree + " logs.");
             previousLogs = currentLogs;
+            log("Total logs collected: " + logsCollected);
         }
+
+        // Check if inventory full
         if(shouldBank()){
             bank();
+            log("Inventory full; banking.");
         } else {
             chopTree(highestTree);
         }
-        return random(100,500);
+        return (random(100,500));
     }
 
     @Override
     public final void onExit() {
-        log("Thanks for chopping! You chopped " + logsCollected + " "  + highestTree + " logs!");
+        log("Thanks for using RK Woodcutter!");
+        log("Logs cut: " + logsCollected);
+        log("Levels gained: " + (skills.getStatic(Skill.WOODCUTTING) - startLevel));
+        log("Run time: " + formatTime(runTime));
     }
 
     @Override
@@ -229,7 +286,6 @@ public final class Woodcutter extends Script {
 
     @Override
     public void onPaint(final Graphics2D g) {
-        //Paint code
         runTime = System.currentTimeMillis() - startTime;
         Font font = new Font("Arial", Font.BOLD, 12);
         g.setColor(Color.WHITE);
@@ -239,15 +295,12 @@ public final class Woodcutter extends Script {
         g.drawString("Run Time: " + formatTime(runTime),10,270);
         g.drawString("Logs Collected: " + logsCollected,10,285);
         g.drawString("Current Level: " + skills.getStatic(Skill.WOODCUTTING),10,300);
-        g.drawString("Levels Gained: TBA",10,315);
+        g.drawString("Levels Gained: " + (skills.getStatic(Skill.WOODCUTTING) - startLevel),10,315);
         g.drawString("Next Level In: TBA",10,330);
 
         String treeType = ("Current Tree: " + highestTree);
         g.drawString(treeType,510 - treeType.length()*7, 20);
     }
-
-
-
-
-
+    //---------------------------------------------------------------------------------------
+    //end region
 }
