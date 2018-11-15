@@ -183,7 +183,6 @@ public final class Woodcutter extends Script {
     }
 
     private void bank() throws InterruptedException {
-        upgradeTree();
         if(!highestTree.bank.contains(myPlayer())){
             getWalking().webWalk(highestTree.bank);
         } else {
@@ -191,9 +190,9 @@ public final class Woodcutter extends Script {
                 getBank().open();
             } else {
                 getBank().depositAllExcept(axes -> axes.getName().contains(" axe"));
+                upgradeTree();
             }
         }
-        previousLogs = 0;
     }
 
     private void upgradeTree(){
@@ -277,6 +276,10 @@ public final class Woodcutter extends Script {
             logsCollected++;
             previousLogs = currentLogs;
             log("Total logs collected: " + logsCollected);
+        }
+
+        if(currentLogs == 0 && previousLogs > 0){
+            previousLogs = 0;
         }
 
         // Check if inventory full
