@@ -70,49 +70,6 @@ public final class Woodcutter extends Script {
 
         return tree;
     }
-    // Depreciated -> Use getTreeInfo
-    /*private String getHighestTree(int curLevel) {
-        Trees trees = new Trees();
-        String treeType;
-
-        if(curLevel >= trees.yew.treeLevel) {
-            treeType = trees.yew.treeName;
-        } else if (curLevel >= trees.maple.treeLevel) {
-            treeType = trees.maple.treeName;
-        } else if (curLevel >= trees.willow.treeLevel) {
-            treeType = trees.willow.treeName;
-        } else if (curLevel >= trees.oak.treeLevel) {
-            treeType = trees.oak.treeName;
-        } else {
-            treeType = trees.tree.treeName;
-        }
-        return treeType;
-    }*/
-
-    // Depreciated -> Use getTreeInfo
-    /*private String getHighestLog(String tree) {
-        Trees trees = new Trees();
-        String logType = "Logs";
-
-        switch (tree) {
-            case "Tree":
-                logType = trees.tree.logName;
-                break;
-            case "Oak":
-                logType = trees.oak.logName;
-                break;
-            case "Willow":
-                logType = trees.willow.logName;
-                break;
-            case "Maple":
-                logType = trees.maple.logName;
-                break;
-            case "Yew":
-                logType = trees.yew.logName;
-                break;
-        }
-        return logType;
-    }*/
 
     private Area getTreeArea(String treeType) {
         TreeArea Trees = new TreeArea();
