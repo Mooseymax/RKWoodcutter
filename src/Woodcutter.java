@@ -30,8 +30,7 @@ public final class Woodcutter extends Script {
     private int previousLevel;
     private int currentLevel;
 
-    private String highestTree;
-    private String highestLog;
+    private TreeInfo highestTree;
     private int locationChoice = 0;
 
     //---------------------------------------------------------------------------------------
@@ -53,7 +52,26 @@ public final class Woodcutter extends Script {
                         String.format("%02d:%02d", m, s);
     }
 
-    private String getHighestTree(int curLevel) {
+    private TreeInfo getTreeInfo(int curLevel){
+        Trees trees = new Trees();
+        TreeInfo tree;
+
+        if(curLevel >= trees.yew.treeLevel) {
+            tree = trees.yew;
+        } else if (curLevel >= trees.maple.treeLevel) {
+            tree = trees.maple;
+        } else if (curLevel >= trees.willow.treeLevel) {
+            tree = trees.willow;
+        } else if (curLevel >= trees.oak.treeLevel) {
+            tree = trees.oak;
+        } else {
+            tree = trees.tree;
+        }
+
+        return tree;
+    }
+    // Depreciated -> Use getTreeInfo
+    /*private String getHighestTree(int curLevel) {
         Trees trees = new Trees();
         String treeType;
 
@@ -69,9 +87,10 @@ public final class Woodcutter extends Script {
             treeType = trees.tree.treeName;
         }
         return treeType;
-    }
+    }*/
 
-    private String getHighestLog(String tree) {
+    // Depreciated -> Use getTreeInfo
+    /*private String getHighestLog(String tree) {
         Trees trees = new Trees();
         String logType = "Logs";
 
@@ -93,7 +112,7 @@ public final class Woodcutter extends Script {
                 break;
         }
         return logType;
-    }
+    }*/
 
     private Area getTreeArea(String treeType) {
         TreeArea Trees = new TreeArea();
@@ -208,8 +227,8 @@ public final class Woodcutter extends Script {
 
     private void bank() throws InterruptedException {
         upgradeTree();
-        if(!Banks.LUMBRIDGE_UPPER.contains(myPlayer())){
-            getWalking().webWalk(Banks.LUMBRIDGE_UPPER);
+        if(!highestTree.bank.contains(myPlayer())){
+            getWalking().webWalk(highestTree.bank);
         } else {
             if(!getBank().isOpen()){
                 getBank().open();
@@ -227,9 +246,8 @@ public final class Woodcutter extends Script {
             previousLevel = currentLevel;
             log("Levelled up since last run!");
 
-            highestTree = getHighestTree(currentLevel);
-            highestLog = getHighestLog(highestTree);
-            log("Now cutting " + highestLog);
+            highestTree = getTreeInfo(currentLevel);
+            log("Now cutting " + highestTree.logName);
         }
     }
     //---------------------------------------------------------------------------------------
@@ -251,20 +269,22 @@ public final class Woodcutter extends Script {
         private String treeName = "";
         private String logName = "";
         private int treeLevel = 0;
+        private Area bank;
 
-        TreeInfo(String n, String log, int lvl){
+        TreeInfo(String n, String log, int lvl, Area b){
             treeName = n;
             logName = log;
             treeLevel = lvl;
+            bank = b;
         }
     }
 
     private class Trees {
-        TreeInfo tree = new TreeInfo("Tree", "Logs", 0);
-        TreeInfo oak = new TreeInfo("Oak", "Oak logs", 15);
-        TreeInfo willow = new TreeInfo("Willow", "Willow logs", 30);
-        TreeInfo maple = new TreeInfo("Maple", "Maple logs", 45);
-        TreeInfo yew = new TreeInfo("Yew", "Yew logs", 60);
+        TreeInfo tree = new TreeInfo("Tree", "Logs", 0, Banks.LUMBRIDGE_UPPER);
+        TreeInfo oak = new TreeInfo("Oak", "Oak logs", 15, Banks.LUMBRIDGE_UPPER);
+        TreeInfo willow = new TreeInfo("Willow", "Willow logs", 99, Banks.DRAYNOR);
+        TreeInfo maple = new TreeInfo("Maple", "Maple logs", 99, Banks.DRAYNOR);
+        TreeInfo yew = new TreeInfo("Yew", "Yew logs", 99, Banks.EDGEVILLE);
     }
     //---------------------------------------------------------------------------------------
     //end region
@@ -280,14 +300,13 @@ public final class Woodcutter extends Script {
         previousLevel = startLevel;
         log("Starting level: " + startLevel);
 
-        highestTree = getHighestTree(startLevel);
-        highestLog = getHighestLog(highestTree);
-        log("Best tree: " + highestTree);
-        log("Best log: " + highestLog);
+        highestTree = getTreeInfo(currentLevel);
+        log("Best tree: " + highestTree.treeName);
+        log("Best log: " + highestTree.logName);
 
         startTime = System.currentTimeMillis();
 
-        initialLogs = getInventory().getAmount(highestLog);
+        initialLogs = getInventory().getAmount(highestTree.logName);
         previousLogs = initialLogs;
         log("Found " + initialLogs + " in inventory.");
         log("All initial checks done.");
@@ -296,7 +315,7 @@ public final class Woodcutter extends Script {
     @Override
     public final int onLoop() throws InterruptedException {
         // Start by counting logs
-        currentLogs = getInventory().getAmount(highestLog);
+        currentLogs = getInventory().getAmount(highestTree.logName);
         if(currentLogs > previousLogs){
             logsCollected++;
             previousLogs = currentLogs;
@@ -308,7 +327,7 @@ public final class Woodcutter extends Script {
             bank();
             log("Inventory full; banking.");
         } else {
-            chopTree(highestTree);
+            chopTree(highestTree.treeName);
         }
         return (random(100,500));
     }
@@ -340,7 +359,7 @@ public final class Woodcutter extends Script {
         g.drawString("Levels Gained: " + (skills.getStatic(Skill.WOODCUTTING) - startLevel),10,315);
         g.drawString("Next Level In: TBA",10,330);
 
-        String treeType = ("Current Tree: " + highestTree);
+        String treeType = ("Current Tree: " + highestTree.treeName);
         g.drawString(treeType,510 - treeType.length()*7, 20);
     }
     //---------------------------------------------------------------------------------------
